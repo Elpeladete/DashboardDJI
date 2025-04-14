@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard DJI - PostVenta D&E</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#006600',
+              50: '#e6f0e6',
+              100: '#ccdfcc',
+              200: '#99bf99',
+              300: '#669f66',
+              400: '#338033',
+              500: '#006600',
+              600: '#005200',
+              700: '#003d00',
+              800: '#002900',
+              900: '#001400',
+            },
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    /* Custom styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f5f8f5;
+    }
+    
+    .loader {
+      border: 3px solid #e6f0e6;
+      border-radius: 50%;
+      border-top: 3px solid #006600;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .tab-active {
+      background-color: #006600;
+      color: white;
+      font-weight: 500;
+    }
+    
+    .card {
+      border: 1px solid #e6f0e6;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 102, 0, 0.1), 0 1px 2px 0 rgba(0, 102, 0, 0.06);
+      background-color: white;
+      overflow: hidden;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .badge-default {
+      background-color: #006600;
+      color: white;
+    }
+    
+    .badge-outline {
+      background-color: transparent;
+      border: 1px solid #006600;
+      color: #006600;
+    }
+    
+    .skeleton {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background-color: #e6f0e6;
+      border-radius: 0.25rem;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: .5;
+      }
+    }
+    
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background-color: #f5f8f5;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+
+    .btn-primary {
+      background-color: #006600;
+      color: white;
+      border: 1px solid #006600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #005200;
+      border-color: #005200;
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: #006600;
+      border: 1px solid #006600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background-color: #e6f0e6;
+    }
+
+    .header {
+      background-color: #006600;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <header class="header shadow-md">
+    <div class="container mx-auto py-4 px-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <img src="https://i.ibb.co/mCzJTHyn/Service-Plus-Icon.png" alt="Service Plus Logo" class="h-10 w-auto">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">PostVenta D&E</h1>
+            <p class="text-sm opacity-80">Dashboard DJI</p>
+          </div>
+        </div>
+        <div class="text-sm">
+          <p class="opacity-80">Panel de observaciones DJI</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container mx-auto py-6 px-4">
+    <div class="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight text-primary-500">Panel de Control</h2>
+        <p class="text-gray-600">Presentación de casos DJI</p>
+      </div>
+      <div class="flex flex-col space-y-2 md:flex-row md:space-x-2 md:space-y-0">
+        <select id="distributor-filter" class="rounded-md border border-primary-200 px-3 py-2 text-sm w-full md:w-[200px] focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50">
+          <option value="all">Todos los Distribuidores</option>
+          <!-- Distributors will be populated here -->
+        </select>
+        <button id="refresh-button" class="btn-primary rounded-md px-4 py-2 text-sm font-medium shadow-sm flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Actualizar Datos
+        </button>
+        <!-- Botones ocultos pero mantenidos en el código por si se necesitan en el futuro -->
+        <button id="test-connection-button" class="btn-secondary rounded-md px-4 py-2 text-sm font-medium shadow-sm hidden">
+          Probar Conexión
+        </button>
+        <button id="show-logs-button" class="btn-secondary rounded-md px-4 py-2 text-sm font-medium shadow-sm hidden">
+          Ver Logs
+        </button>
+      </div>
+    </div>
+    
+    <div id="error-container" class="mt-4 hidden rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Error al cargar datos</h3>
+          <div id="error-message" class="mt-2 text-sm text-red-700"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="success-container" class="mt-4 hidden rounded-md bg-primary-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-primary-700">Éxito</h3>
+          <div id="success-message" class="mt-2 text-sm text-primary-600"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="logs-container" class="mt-4 hidden">
+      <div class="card p-4">
+        <h3 class="text-lg font-medium mb-2 text-primary-700">Logs del Servidor</h3>
+        <pre id="logs-content" class="text-xs border border-primary-100"></pre>
+      </div>
+    </div>
+    
+    <div class="mt-6">
+      <div class="tabs-container">
+        <div class="tabs-list grid grid-cols-2 md:grid-cols-7 gap-1 bg-primary-50 p-1 rounded-md">
+          <button class="tab-button tab-active py-2 px-3 rounded-md text-sm" data-tab="all">Todos</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209048018419207">Garantias DJI</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209525673160685">Revision Urgente</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209792043819698">Casos escalados</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209048018419351">Pendientes enviar</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209897696658740">Enviados a deposito</button>
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100" data-tab="1209048018419352">Finalizadas</button>
+          <!-- Solapa "Pruebas" oculta -->
+          <button class="tab-button py-2 px-3 rounded-md text-sm hover:bg-primary-100 hidden" data-tab="1209938778894096">Pruebas</button>
+        </div>
+        
+        <div id="loading-container" class="mt-8 text-center">
+          <div class="loader"></div>
+          <p class="mt-2 text-primary-500">Cargando datos...</p>
+        </div>
+        
+        <div id="content-container" class="mt-6 hidden">
+          <!-- Content will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="bg-primary-500 text-white py-4 mt-8">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="flex items-center mb-4 md:mb-0">
+          <img src="https://i.ibb.co/mCzJTHyn/Service-Plus-Icon.png" alt="Service Plus Logo" class="h-8 w-auto mr-2">
+          <span class="font-semibold">PostVenta D&E</span>
+        </div>
+        <div class="text-sm opacity-80">
+          © 2025 PostVenta D&E - V01R001.140425.
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    // Global variables
+    let allSections = [];
+    let activeTab = 'all';
+    let distributorFilter = 'all';
+    
+    // Initialize the dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      initEventListeners();
+      loadData();
+    });
+    
+    // Set up event listeners
+    function initEventListeners() {
+      // Tab buttons
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', function() {
+          const tabId = this.getAttribute('data-tab');
+          setActiveTab(tabId);
+        });
+      });
+      
+      // Refresh button
+      document.getElementById('refresh-button').addEventListener('click', loadData);
+      
+      // Test connection button (mantenemos el evento aunque esté oculto)
+      document.getElementById('test-connection-button').addEventListener('click', testConnection);
+      
+      // Show logs button (mantenemos el evento aunque esté oculto)
+      document.getElementById('show-logs-button').addEventListener('click', showLogs);
+      
+      // Distributor filter
+      document.getElementById('distributor-filter').addEventListener('change', function() {
+        distributorFilter = this.value;
+        renderContent();
+      });
+    }
+    
+    // Test the connection to the server
+    function testConnection() {
+      showLoading(true);
+      hideError();
+      hideSuccess();
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          showSuccess("Conexión exitosa! El servidor respondió a las: " + result.timestamp);
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showError("Prueba de conexión fallida: " + error);
+          showLoading(false);
+        })
+        .testConnection();
+    }
+    
+    // Show the server logs
+    function showLogs() {
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function(logs) {
+          document.getElementById('logs-content').textContent = logs;
+          document.getElementById('logs-container').classList.remove('hidden');
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showError("Error al obtener logs: " + error);
+          showLoading(false);
+        })
+        .getLogs();
+    }
+    
+    // Set the active tab
+    function setActiveTab(tabId) {
+      activeTab = tabId;
+      
+      // Update tab button styles
+      document.querySelectorAll('.tab-button').forEach(button => {
+        if (button.getAttribute('data-tab') === tabId) {
+          button.classList.add('tab-active');
+        } else {
+          button.classList.remove('tab-active');
+        }
+      });
+      
+      renderContent();
+    }
+    
+    // Load data from the server
+    function loadData() {
+      showLoading(true);
+      hideError();
+      hideSuccess();
+      
+      google.script.run
+        .withSuccessHandler(function(data) {
+          console.log("Data received:", data);
+          
+          // Check if there was an error
+          if (data && data.error) {
+            showError(data.error);
+            showLoading(false);
+            return;
+          }
+          
+          // Check if data is an array
+          if (!Array.isArray(data)) {
+            showError("Formato de datos inválido recibido del servidor");
+            console.error("Invalid data:", data);
+            showLoading(false);
+            return;
+          }
+          
+          // Filtrar la sección "Pruebas" de los datos
+          allSections = data.filter(section => section.section.gid !== "1209938778894096");
+          loadDistributors();
+          renderContent();
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showError("Error al cargar datos: " + error);
+          console.error("Error:", error);
+          showLoading(false);
+        })
+        .getAllTasks();
+    }
+    
+    // Load distributors for the filter dropdown
+    function loadDistributors() {
+      const distributors = new Set();
+      
+      allSections.forEach(function(section) {
+        if (section.tasks && Array.isArray(section.tasks)) {
+          section.tasks.forEach(function(task) {
+            if (task.customFieldValues && task.customFieldValues.distributor) {
+              distributors.add(task.customFieldValues.distributor);
+            }
+          });
+        }
+      });
+      
+      const distributorSelect = document.getElementById('distributor-filter');
+      // Clear existing options except the first one
+      while (distributorSelect.options.length > 1) {
+        distributorSelect.remove(1);
+      }
+      
+      // Add new options
+      Array.from(distributors).sort().forEach(function(distributor) {
+        const option = document.createElement('option');
+        option.value = distributor;
+        option.textContent = distributor;
+        distributorSelect.appendChild(option);
+      });
+    }
+    
+    // Render the content based on the active tab and filter
+    function renderContent() {
+      const contentContainer = document.getElementById('content-container');
+      contentContainer.classList.remove('hidden');
+      
+      // Filter sections by distributor
+      const filteredSections = allSections.map(function(section) {
+        if (distributorFilter === 'all') {
+          return section;
+        } else {
+          return {
+            ...section,
+            tasks: section.tasks.filter(function(task) {
+              return task.customFieldValues && 
+                     task.customFieldValues.distributor === distributorFilter;
+            })
+          };
+        }
+      });
+      
+      if (activeTab === 'all') {
+        // Render all sections in a grid
+        contentContainer.innerHTML = `
+          <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            ${filteredSections.map(renderSectionCard).join('')}
+          </div>
+        `;
+      } else {
+        // Render a single section in detail
+        const selectedSection = filteredSections.find(section => section.section.gid === activeTab);
+        
+        if (selectedSection) {
+          contentContainer.innerHTML = `
+            <div class="card">
+              <div class="p-4 border-b border-primary-100 bg-primary-50">
+                <h2 class="text-xl font-bold text-primary-700">${selectedSection.section.name}</h2>
+                <p class="text-primary-600">${selectedSection.tasks.length} tareas en esta sección</p>
+              </div>
+              <div class="p-4">
+                <div class="space-y-6">
+                  ${selectedSection.tasks.length > 0 
+                    ? selectedSection.tasks.map(renderDetailedTask).join('')
+                    : '<div class="py-8 text-center text-primary-500">No se encontraron tareas en esta sección</div>'
+                  }
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          contentContainer.innerHTML = '<div class="text-center text-primary-500">Sección no encontrada</div>';
+        }
+      }
+    }
+    
+    // Render a section card for the grid view
+    function renderSectionCard(sectionData) {
+      return `
+        <div class="card">
+          <div class="p-4 border-b border-primary-100 bg-primary-50">
+            <h2 class="text-lg font-bold text-primary-700">${sectionData.section.name}</h2>
+            <p class="text-primary-600">${sectionData.tasks.length} tareas</p>
+          </div>
+          <div class="p-4">
+            <div class="space-y-4">
+              ${sectionData.error 
+                ? `<div class="text-red-500">${sectionData.error}</div>`
+                : sectionData.tasks.length > 0 
+                  ? sectionData.tasks.map(renderTask).join('')
+                  : '<div class="py-4 text-center text-sm text-primary-500">No hay tareas en esta sección</div>'
+              }
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Render a task for the grid view
+    function renderTask(task) {
+      return `
+        <div class="space-y-2 border-b border-primary-100 pb-4 last:border-0">
+          <div class="flex items-start justify-between">
+            <div class="font-medium text-primary-800">${escapeHtml(task.name)}</div>
+            <span class="badge ${task.completed ? 'badge-outline' : 'badge-default'}">
+              ${task.completed ? 'Completada' : 'Activa'}
+            </span>
+          </div>
+          
+          <!-- Custom Fields -->
+          <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+            ${task.customFieldValues?.distributor ? `
+              <div class="flex items-center text-xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <span class="font-medium text-primary-700">Distribuidor:</span> ${escapeHtml(task.customFieldValues.distributor)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.caseNumber ? `
+              <div class="flex items-center text-xs">
+                <span class="font-medium text-primary-700">Caso #:</span> ${escapeHtml(task.customFieldValues.caseNumber)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.ticketStatus ? `
+              <div class="flex items-center text-xs">
+                <span class="font-medium text-primary-700">Estado:</span> ${escapeHtml(task.customFieldValues.ticketStatus)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.lastUpdate ? `
+              <div class="flex items-center text-xs">
+                <span class="font-medium text-primary-700">Última actualización:</span> ${formatDate(task.customFieldValues.lastUpdate)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.djiEntryDate ? `
+              <div class="flex items-center text-xs">
+                <span class="font-medium text-primary-700">Fecha Ingreso DJI:</span> ${formatDate(task.customFieldValues.djiEntryDate)}
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="flex flex-wrap gap-2 text-xs text-gray-500">
+            ${task.due_on ? `
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                ${formatDate(task.due_on)}
+              </div>
+            ` : ''}
+            
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              ${formatDate(task.modified_at)}
+            </div>
+            
+            ${task.assignee ? `<div>Asignado: ${escapeHtml(task.assignee.name)}</div>` : ''}
+          </div>
+          
+          <div class="flex justify-end">
+            <a href="${task.permalink_url}" target="_blank" class="inline-flex items-center text-xs text-primary-600 hover:underline">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              Ver en Asana
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Render a detailed task for the single section view
+    function renderDetailedTask(task) {
+      return `
+        <div class="border-b border-primary-100 pb-4 last:border-0">
+          <div class="flex items-start justify-between">
+            <h3 class="font-medium text-primary-800">${escapeHtml(task.name)}</h3>
+            <span class="badge ${task.completed ? 'badge-outline' : 'badge-default'}">
+              ${task.completed ? 'Completada' : 'Activa'}
+            </span>
+          </div>
+          
+          <!-- Custom Fields -->
+          <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            ${task.customFieldValues?.distributor ? `
+              <div class="flex items-center text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <span class="font-medium text-primary-700">Distribuidor:</span> ${escapeHtml(task.customFieldValues.distributor)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.caseNumber ? `
+              <div class="flex items-center text-sm">
+                <span class="font-medium text-primary-700">Caso #:</span> ${escapeHtml(task.customFieldValues.caseNumber)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.ticketStatus ? `
+              <div class="flex items-center text-sm">
+                <span class="font-medium text-primary-700">Estado:</span> ${escapeHtml(task.customFieldValues.ticketStatus)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.lastUpdate ? `
+              <div class="flex items-center text-sm">
+                <span class="font-medium text-primary-700">Última actualización:</span> ${formatDate(task.customFieldValues.lastUpdate)}
+              </div>
+            ` : ''}
+            
+            ${task.customFieldValues?.djiEntryDate ? `
+              <div class="flex items-center text-sm">
+                <span class="font-medium text-primary-700">Fecha Ingreso DJI:</span> ${formatDate(task.customFieldValues.djiEntryDate)}
+              </div>
+            ` : ''}
+          </div>
+          
+          ${task.notes ? `<div class="mt-2 text-sm">${escapeHtml(task.notes)}</div>` : ''}
+          
+          <div class="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+            ${task.due_on ? `
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Vencimiento: ${formatDate(task.due_on)}
+              </div>
+            ` : ''}
+            
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Actualizado: ${formatDate(task.modified_at)}
+            </div>
+            
+            ${task.assignee ? `<div>Asignado a: ${escapeHtml(task.assignee.name)}</div>` : ''}
+          </div>
+          
+          <div class="mt-2 flex justify-end">
+            <a href="${task.permalink_url}" target="_blank" class="inline-flex items-center text-sm text-primary-600 hover:underline">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              Abrir en Asana
+            </a>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Show or hide the loading indicator
+    function showLoading(show) {
+      const loadingContainer = document.getElementById('loading-container');
+      const contentContainer = document.getElementById('content-container');
+      
+      if (show) {
+        loadingContainer.classList.remove('hidden');
+        contentContainer.classList.add('hidden');
+      } else {
+        loadingContainer.classList.add('hidden');
+      }
+    }
+    
+    // Show error message
+    function showError(message) {
+      const errorContainer = document.getElementById('error-container');
+      const errorMessage = document.getElementById('error-message');
+      
+      errorContainer.classList.remove('hidden');
+      errorMessage.textContent = message;
+    }
+    
+    // Hide error message
+    function hideError() {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.classList.add('hidden');
+    }
+    
+    // Show success message
+    function showSuccess(message) {
+      const successContainer = document.getElementById('success-container');
+      const successMessage = document.getElementById('success-message');
+      
+      successContainer.classList.remove('hidden');
+      successMessage.textContent = message;
+    }
+    
+    // Hide success message
+    function hideSuccess() {
+      const successContainer = document.getElementById('success-container');
+      successContainer.classList.add('hidden');
+    }
+    
+    // Format date
+    function formatDate(dateString) {
+      if (!dateString) return 'Sin fecha';
+      
+      // Verificar si es el formato simple YYYY-MM-DD
+      const simpleFormat = /^\d{4}-\d{2}-\d{2}$/;
+      
+      let date;
+      if (simpleFormat.test(dateString)) {
+        // Crear fecha desde formato YYYY-MM-DD
+        const [year, month, day] = dateString.split('-').map(Number);
+        date = new Date(year, month - 1, day); // Nota: mes en JavaScript es 0-indexado
+      } else {
+        // Intentar crear fecha desde otros formatos como ISO
+        date = new Date(dateString);
+      }
+      
+      // Verificar si la fecha es válida
+      if (isNaN(date.getTime())) {
+        return 'Fecha inválida';
+      }
+      
+      // Opciones para el formato de fecha
+      const options = { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric'
+      };
+      
+      // Formatear la fecha (formato dd/mm/yyyy)
+      return date.toLocaleDateString('es-AR', options);
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '';
+      
+      return unsafe
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
