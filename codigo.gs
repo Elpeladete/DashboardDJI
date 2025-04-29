@@ -59,6 +59,39 @@ const SECTIONS = [
   }
 ];
 
+// User authentication data (for simplicity, hardcoded here)
+const USERS = {
+  "Aconcagro": { password: "345sdfvgb", distributor: "Aconcagro" },
+  "Agrix": { password: "23werfg", distributor: "Agrix" },
+  "Agrodiesel": { password: "rfdvc45", distributor: "Agrodiesel" },
+  "Agrodrones TL": { password: "987uihjmn", distributor: "Agrodrones TL" },
+  "Agronix": { password: "987yughf", distributor: "Agronix" },
+  "Arduini": { password: "213lcsd", distributor: "Arduini Maximiliano" },
+  "Arán Tecnologías": { password: "67uytrgfd", distributor: "Arán Tecnologías" },
+  "Bianchini Precisión": { password: "43erfdsr34", distributor: "Bianchini Precisión" },
+  "Crontab": { password: "1qwsadfgt", distributor: "Crontab S.A." },
+  "Kampu": { password: "09876ytg", distributor: "Kampu" },
+  "Lucas Preisz": { password: "lkmojiht76", distributor: "Lucas Preisz" },
+  "Pauny": { password: "23wdfcvds", distributor: "Pauny" },
+  "Ralch": { password: "9273vgcfdes", distributor: "Ralch SA" },
+  "Vamagro": { password: "olkiujy653", distributor: "Vamagro" },
+  "soporte@dyesa.com": { password: "PostVentaDyE", distributor: "all" },
+  "iespinosa@dyesa.com": { password: "EspinosaI", distributor: "all" },
+  "maused@dyesa.com": { password: "AusedM", distributor: "all" },
+  "comercial": { password: "comercialDJI", distributor: "all" }
+};
+
+/**
+ * Authenticates a user based on username and password.
+ */
+function authenticateUser(username, password) {
+  const user = USERS[username];
+  if (user && user.password === password) {
+    return { success: true, distributor: user.distributor };
+  }
+  return { success: false, message: "Usuario o contraseña incorrectos" };
+}
+
 /**
  * Serves the HTML page
  */
@@ -241,6 +274,30 @@ function fetchTasksForSection(sectionGid, token) {
     Logger.log("Error in fetchTasksForSection: " + error.toString());
     throw error;
   }
+}
+
+/**
+ * Filters tasks based on the distributor associated with the authenticated user.
+ */
+function getTasksForDistributor(distributor) {
+  const allTasks = getAllTasks();
+
+  if (allTasks.error) {
+    return { error: allTasks.error };
+  }
+
+  if (distributor === "all") {
+    return allTasks;
+  }
+
+  const filteredTasks = allTasks.map(section => {
+    const tasks = section.tasks.filter(task =>
+      task.customFieldValues && task.customFieldValues.distributor === distributor
+    );
+    return { ...section, tasks };
+  });
+
+  return filteredTasks.filter(section => section.tasks.length > 0);
 }
 
 /**
